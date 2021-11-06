@@ -87,26 +87,8 @@ class complex_relu_layer(nn.Module):
         real, img = self.complex_relu(real, img)
         return real, img
 
-class complex_relu_layer2(nn.Module):
-    def __init__(self, ):
-        super(complex_relu_layer2, self).__init__()
-    
-    def complex_relu(self, real, img):
-        mask = 1.0*((real + img) >= 0)
-        return mask*real, mask*img
-
-    def forward(self, real, img=None):
-        # for torch nn sequential usage
-        # in this case, x_real is a tuple of (real, img)
-        if img == None:
-            img = real[1]
-            real = real[0]
-
-        real, img = self.complex_relu(real, img)
-        return real, img
-
 class MagNet(nn.Module):
-    def __init__(self, in_c, L_norm_real, L_norm_imag, num_filter=2, K=2, label_dim=2, activation='relu', layer=2, dropout=False):
+    def __init__(self, in_c, L_norm_real, L_norm_imag, num_filter=2, K=2, label_dim=2, layer=2, dropout=False):
         """
         :param in_c: int, number of input channels.
         :param hid_c: int, number of hidden channels.
@@ -116,8 +98,6 @@ class MagNet(nn.Module):
         super(MagNet, self).__init__()
 
         activation_func = complex_relu_layer
-        if activation != 'relu':
-            activation_func = complex_relu_layer2
 
         chebs = [MagConv(in_c=in_c, out_c=num_filter, K=K, L_norm_real=L_norm_real, L_norm_imag=L_norm_imag)]
         chebs.append(activation_func())
@@ -146,12 +126,10 @@ class MagNet(nn.Module):
         return x
 
 class MagNet_Edge(nn.Module):
-    def __init__(self, in_c, L_norm_real, L_norm_imag, num_filter=2, K=2, label_dim = 2, activation='relu', layer = 2, dropout = False):
+    def __init__(self, in_c, L_norm_real, L_norm_imag, num_filter=2, K=2, label_dim = 2, layer = 2, dropout = False):
         super(MagNet_Edge, self).__init__()
         
         activation_func = complex_relu_layer
-        if activation != 'relu':
-            activation_func = complex_relu_layer2
 
         chebs = [MagConv(in_c=in_c, out_c=num_filter, K=K, L_norm_real=L_norm_real, L_norm_imag=L_norm_imag)]
         chebs.append(activation_func())

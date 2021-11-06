@@ -41,7 +41,6 @@ def parse_args():
     parser.add_argument('--debug', '-D', action='store_true', help='debug mode')
     parser.add_argument('--lr', type=float, default=5e-3, help='learning rate')
     parser.add_argument('--l2', type=float, default=5e-4, help='l2 regularizer')
-    parser.add_argument('--activation', type=str, default='relu', help='activation function')
 
     parser.add_argument('--num_filter', type=int, default=16, help='num of filters')
     parser.add_argument('--randomseed', type=int, default=3407, help='if set random seed in training')
@@ -112,7 +111,7 @@ def main(args):
         log_str_full = ''
 
         model = MagNet(X_real.size(-1), L_real, L_img, K = args.K, label_dim=cluster_dim, layer = args.layer,
-                                activation = args.activation, num_filter = args.num_filter, dropout=args.dropout).to(device)    
+                        num_filter = args.num_filter, dropout=args.dropout).to(device)    
  
         opt = optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.l2)
 

@@ -41,8 +41,7 @@ def parse_args():
     parser.add_argument('--q', type=float, default=0, help='q value for the phase matrix')
     parser.add_argument('--K', type=int, default=1, help='K for cheb series')
     parser.add_argument('--layer', type=int, default=2, help='how many layers of gcn in the model, only 1 or 2 layers.')
-    parser.add_argument('--activation', type=str, default='relu', help='activation function')
-    
+
     parser.add_argument('--dropout', type=float, default=0.5, help='dropout prob')
     parser.add_argument('--debug', '-D', action='store_true', help='debug mode')
     parser.add_argument('--num_class_link', type=int, default=2,
@@ -128,7 +127,7 @@ def main(args):
         # initialize model and load dataset
         ########################################
         model = MagNet_Edge(X_real.size(-1), L_real, L_img, K = args.K, label_dim = args.num_class_link, layer = args.layer,
-                                activation = args.activation, num_filter = args.num_filter, dropout=args.dropout)
+                                num_filter = args.num_filter, dropout=args.dropout)
 
         #model = nn.DataParallel(model)  
         model = model.to(device)
