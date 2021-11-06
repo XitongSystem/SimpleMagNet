@@ -69,21 +69,21 @@ def main(args):
 
     load_func, subset = args.dataset.split('/')[0], args.dataset.split('/')[1]
     if load_func == 'WebKB':
-        load_func = WebKB
+        func = WebKB
     elif load_func == 'cora_ml':
-        load_func = citation_datasets
+        func = citation_datasets
     elif load_func == 'citeseer_npz':
-        load_func = citation_datasets
+        func = citation_datasets
     elif load_func == 'syn':
-        load_func = load_syn
+        func = load_syn
         args.data_path = args.data_path+'syn/'+subset
     else:
         print("wrong dataset name !!!")
         return
 
     X, label, train_mask, val_mask, test_mask, L = geometric_dataset_sparse(args.q, args.K, 
-                            root=args.data_path, subset=subset,
-                            dataset = load_func, load_only = False, save_pk = True)
+                            root=args.data_path+load_func, subset=subset,
+                            dataset = func, load_only = False, save_pk = True)
   
     # normalize label, the minimum should be 0 as class index
     _label_ = label - np.amin(label)
@@ -237,7 +237,7 @@ if __name__ == "__main__":
             os.makedirs(dir_name)
         except FileExistsError:
             print('Folder exists!')
-    save_name = args.method_name + 'lr' + str(int(args.lr*1000)) + 'num_filters' + str(int(args.num_filter)) + 'q' + str(int(100*args.q)) + 'layer' + str(int(args.layer)) + 'K' +  str(int(args.K)) + 'Act' + args.activation
+    save_name = args.method_name + 'lr' + str(int(args.lr*1000)) + 'num_filters' + str(int(args.num_filter)) + 'q' + str(int(100*args.q)) + 'layer' + str(int(args.layer)) + 'K' +  str(int(args.K))
     args.save_name = save_name
     results = main(args)
     np.save(dir_name+save_name, results)
