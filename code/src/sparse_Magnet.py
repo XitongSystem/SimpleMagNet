@@ -15,7 +15,7 @@ from torch_geometric.datasets import WebKB, WikipediaNetwork, WikiCS
 # internal files
 from utils.Citation import *
 from layer.sparse_magnet import *
-from utils.preprocess import geometric_dataset_sparse
+from utils.preprocess import geometric_dataset_sparse, load_syn
 from utils.save_settings import write_log
 from utils.hermitian import hermitian_decomp_sparse
 
@@ -41,10 +41,10 @@ def parse_args():
     parser.add_argument('--debug', '-D', action='store_true', help='debug mode')
     parser.add_argument('--lr', type=float, default=5e-3, help='learning rate')
     parser.add_argument('--l2', type=float, default=5e-4, help='l2 regularizer')
-    
-    parser.add_argument('-activation', '-a', action='store_true', help='if use activation function')
+    parser.add_argument('--activation', type=str, default='relu', help='activation function')
+
     parser.add_argument('--num_filter', type=int, default=16, help='num of filters')
-    parser.add_argument('--randomseed', type=int, default=-1, help='if set random seed in training')
+    parser.add_argument('--randomseed', type=int, default=3407, help='if set random seed in training')
     return parser.parse_args()
 
 def sparse_mx_to_torch_sparse_tensor(sparse_mx):
@@ -75,21 +75,16 @@ def main(args):
         load_func = citation_datasets
     elif load_func == 'citeseer_npz':
         load_func = citation_datasets
+    elif load_func == 'syn':
+        load_func = load_syn
+        args.data_path = args.data_path+'syn/'+subset
     else:
         print("wrong dataset name !!!")
         return
 
-    _file_ = args.data_path+args.dataset+'/data'+str(args.q)+'_'+str(args.K)+'_sparse.pk'
-    if os.path.isfile(_file_):
-        data = pk.load(open(_file_, 'rb')) 
-        L = data['L']
-        X, label, train_mask, val_mask, test_mask = geometric_dataset_sparse(args.q, args.K, 
-                        root=args.data_path+args.dataset, subset=subset,
-                        dataset = load_func, load_only = True, save_pk = False)
-    else:
-        X, label, train_mask, val_mask, test_mask, L = geometric_dataset_sparse(args.q, args.K, 
-                                root=args.data_path+args.dataset, subset=subset,
-                                dataset = load_func, load_only = False, save_pk = True)
+    X, label, train_mask, val_mask, test_mask, L = geometric_dataset_sparse(args.q, args.K, 
+                            root=args.data_path, subset=subset,
+                            dataset = load_func, load_only = False, save_pk = True)
   
     # normalize label, the minimum should be 0 as class index
     _label_ = label - np.amin(label)
@@ -116,7 +111,7 @@ def main(args):
     for split in range(splits):
         log_str_full = ''
 
-        model = ChebNet(X_real.size(-1), L_real, L_img, K = args.K, label_dim=cluster_dim, layer = args.layer,
+        model = MagNet(X_real.size(-1), L_real, L_img, K = args.K, label_dim=cluster_dim, layer = args.layer,
                                 activation = args.activation, num_filter = args.num_filter, dropout=args.dropout).to(device)    
  
         opt = optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.l2)
@@ -243,7 +238,7 @@ if __name__ == "__main__":
             os.makedirs(dir_name)
         except FileExistsError:
             print('Folder exists!')
-    save_name = args.method_name + 'lr' + str(int(args.lr*1000)) + 'num_filters' + str(int(args.num_filter)) + 'q' + str(int(100*args.q)) + 'layer' + str(int(args.layer)) + 'K' +  str(int(args.K))
+    save_name = args.method_name + 'lr' + str(int(args.lr*1000)) + 'num_filters' + str(int(args.num_filter)) + 'q' + str(int(100*args.q)) + 'layer' + str(int(args.layer)) + 'K' +  str(int(args.K)) + 'Act' + args.activation
     args.save_name = save_name
     results = main(args)
     np.save(dir_name+save_name, results)
